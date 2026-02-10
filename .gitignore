@@ -1,0 +1,11 @@
+# Python-specific files
+__pycache__/
+*.pyc
+
+# OS/Editor generated files
+.DS_Store 
+
+# Environment and data
+data/processed/  # If you create any processed data
+.env             # For sensitive API keys (e.g., GPT, Mastodon)
+venv/            # Local virtual environment folder (if used)
