@@ -6,6 +6,7 @@ __pycache__/
 .DS_Store 
 
 # Environment and data
-data/processed/  # If you create any processed data
-.env             # For sensitive API keys (e.g., GPT, Mastodon)
-venv/            # Local virtual environment folder (if used)
+data/processed/
+.env
+venv/
+.venv/

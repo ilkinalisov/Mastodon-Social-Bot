@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Trend Bot</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-100 bg-gradient-to-br from-cyan-100 via-slate-100 to-amber-100 text-slate-900">
+  <main class="mx-auto flex min-h-screen w-full max-w-3xl items-center px-6 py-10">
+    <section class="w-full rounded-3xl border border-slate-200 bg-white/85 p-8 shadow-2xl backdrop-blur-sm">
+      <h1 class="text-3xl font-bold tracking-tight">AI Trend Bot</h1>
+      <p class="mt-2 text-slate-600">Generate a sarcastic post from live trends and optionally publish it to Mastodon.</p>
+
+      <div class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <label class="inline-flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+          <input id="dryRun" type="checkbox" class="h-4 w-4" />
+          <span class="font-medium text-slate-700">Dry Run</span>
+        </label>
+
+        <button
+          id="runBtn"
+          class="rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+          type="button"
+        >
+          Generate &amp; Post
+        </button>
+      </div>
+
+      <div id="statusBox" class="mt-5 hidden rounded-xl border px-4 py-3 text-sm"></div>
+
+      <article id="resultBox" class="mt-6 hidden rounded-xl border border-cyan-200 bg-cyan-50 p-5">
+        <h2 class="text-xl font-semibold text-cyan-900">Sarcastic Post</h2>
+        <p id="topicText" class="mt-2 text-sm text-cyan-800"></p>
+        <pre id="postText" class="mt-3 whitespace-pre-wrap font-sans text-base text-slate-900"></pre>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const runBtn = document.getElementById('runBtn');
+    const dryRun = document.getElementById('dryRun');
+    const statusBox = document.getElementById('statusBox');
+    const resultBox = document.getElementById('resultBox');
+    const topicText = document.getElementById('topicText');
+    const postText = document.getElementById('postText');
+
+    function showStatus(message, isError = false) {
+      statusBox.classList.remove('hidden', 'border-red-200', 'bg-red-50', 'text-red-700', 'border-slate-200', 'bg-slate-50', 'text-slate-700');
+      if (isError) {
+        statusBox.classList.add('border-red-200', 'bg-red-50', 'text-red-700');
+      } else {
+        statusBox.classList.add('border-slate-200', 'bg-slate-50', 'text-slate-700');
+      }
+      statusBox.textContent = message;
+    }
+
+    runBtn.addEventListener('click', async () => {
+      runBtn.disabled = true;
+      runBtn.textContent = 'Running...';
+      showStatus('Executing bot pipeline...');
+      resultBox.classList.add('hidden');
+
+      try {
+        const response = await fetch(`/run-bot?dry_run=${dryRun.checked}`, { method: 'POST' });
+        const payload = await response.json();
+
+        if (!response.ok) {
+          throw new Error(payload.detail || 'Request failed.');
+        }
+
+        showStatus(payload.message || 'Pipeline completed.');
+        topicText.textContent = payload.topic ? `Topic: ${payload.topic}` : 'Topic: unavailable';
+        postText.textContent = payload.sarcastic_post || 'No generated post was returned.';
+        resultBox.classList.remove('hidden');
+      } catch (error) {
+        showStatus(error.message || 'Unexpected error', true);
+      } finally {
+        runBtn.disabled = false;
+        runBtn.textContent = 'Generate & Post';
+      }
+    });
+  </script>
+</body>
+</html>
