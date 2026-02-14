@@ -3,10 +3,11 @@ from pathlib import Path
 import sys
 
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 
 APP_ROOT = Path(__file__).resolve().parent
 UI_FILE = APP_ROOT / "web" / "index.html"
+FAVICON_FILE = APP_ROOT / "web" / "favicon.svg"
 SRC_DIR = APP_ROOT / "src"
 
 if str(SRC_DIR) not in sys.path:
@@ -24,6 +25,18 @@ async def index() -> FileResponse:
     if not UI_FILE.exists():
         raise HTTPException(status_code=404, detail="UI file not found.")
     return FileResponse(UI_FILE)
+
+
+@app.head("/")
+async def index_head() -> Response:
+    return Response(status_code=200)
+
+
+@app.get("/favicon.ico", response_class=FileResponse)
+async def favicon() -> FileResponse:
+    if FAVICON_FILE.exists():
+        return FileResponse(FAVICON_FILE, media_type="image/svg+xml")
+    return Response(status_code=204)
 
 
 @app.post("/run-bot")
